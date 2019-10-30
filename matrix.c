@@ -4,7 +4,7 @@
 int** allocateMatrix(int rows, int cols) {
     int** new = safeMalloc((sizeof(int*) * rows));
     for(int i = 0; i < cols; i++) {
-        new[i] = malloc(sizeof(int) * cols);
+        new[i] = safeMalloc(sizeof(int) * cols);
     }
     return new;
 }
@@ -16,7 +16,7 @@ Matrix* readMatrixFromFile(FILE* file) {
     fscanf(file, "%d", &new->rows);
     fscanf(file, "%d", &new->cols);
     if (new->rows == 0 || new->cols == 0) {
-        printf("Unable to read matrix file. Please double check your formating.\n");
+        fprintf(stderr, "Unable to read matrix file. Please double check your formating.\n");
         exit(0);
     }
     new->values = allocateMatrix(new->rows, new->cols);
@@ -25,13 +25,22 @@ Matrix* readMatrixFromFile(FILE* file) {
             fscanf(file, "%d", &(new->values[i][j]));
             if (feof(file)) {
                 int failedIndex = (i * new->cols) + j + 1;
-                printf("Failed to read matrix file at %dth value. Please double check your formating.\n", failedIndex);
+                fprintf(stderr, "Failed to read matrix file at %dth value. Please double check your formating.\n", failedIndex);
                 exit(0);
             }
         }
     }
     return new;
 }
+
+void freeMatrix(Matrix* m) {
+    for (int i = 0; i < m->cols; i++) {
+        free(m->values[i]);
+    }
+    free(m->values);
+    free(m);
+}
+
 
 void printMatrix(Matrix* m) {
     for(int i = 0; i < m->rows; i++) {

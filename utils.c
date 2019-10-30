@@ -1,10 +1,9 @@
 #include "utils.h"
 
-
 void* safeMalloc(int size) {
     void* address = malloc(size);
     if (address == NULL) {
-        printf("Error: out of memory ");
+        fprintf(stderr, "Error: out of memory ");
         exit(-1);
     }
     return address;

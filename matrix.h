@@ -11,6 +11,7 @@ typedef struct _matrix_ {
 } Matrix;
 
 Matrix* readMatrixFromFile(FILE* fp);
+void freeMatrix(Matrix* m);
 void printMatrix(Matrix* m);
 
 #endif

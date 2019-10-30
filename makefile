@@ -3,7 +3,7 @@ CFLAGS = -std=c99 -Wall
 OBJECTS = utils.o matrix.o
 
 all: $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) package.c -o package
+	$(CC) $(CFLAGS) $(OBJECTS) package.c -o package -lpthread -DDEBUG=1
 
 utils.o: utils.c utils.h
 	$(CC) $(CFLAGS) -c utils.c -o utils.o
