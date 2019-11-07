@@ -63,21 +63,21 @@ void *packageSubtasks(void *payload)
         message.data[currentIndex + innerDim] = second->values[currentIndex][data->colNum];
     }
     // Send message
+
+    int rc = -1;
+    // Block on message send since thread has nothing else to do;
+    rc = msgsnd(data->msqid, &message, getMsgSize(2 * innerDim), 0);
     pthread_mutex_lock(&sendLock);
     ++jobsSent;
     pthread_mutex_unlock(&sendLock);
-    int rc = -1;
-    rc = msgsnd(data->msqid, &message, getMsgSize(2 * innerDim), 0);
     printf("Sending job id %d type %d size %d (rc=%d)\n", data->jobId, 1, getMsgSize(2 * innerDim), rc);
 
-    // TODO: Add check for eventual message send
-
+    // Block waiting for receive send since thread has nothing else to do;
+    msgrcv(data->msqid, &message, getMsgSize(100), 2, 0);
+    printf("Receiving job id %d type %d size %d\n", message.jobId, 2, getMsgSize(1));
     pthread_mutex_lock(&receiveLock);
     ++jobsReceived;
     pthread_mutex_unlock(&receiveLock);
-    // Wait for response
-    msgrcv(data->msqid, &message, getMsgSize(100), 2, 0);
-    printf("Receiving job id %d type %d size %d\n", message.jobId, 2, getMsgSize(1));
 
     ((Payload *)payload)->result->values[message.rowNum][message.colNum] = message.data[0];
     return NULL;
