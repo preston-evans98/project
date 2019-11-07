@@ -179,6 +179,8 @@ int main(int argc, char **argv)
         free(payloads[i]);
     }
     free(payloads);
-
+    fclose(output);
+    fclose(inputOne);
+    fclose(inputTwo);
     return 0;
 }
