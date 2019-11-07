@@ -76,52 +76,6 @@ int doDotProduct(void *args)
             }
         }
     }
-    // while (1)
-    // {
-    //     if (localNumJobs == -1)
-    //     {
-    //         pthread_mutex_lock(&numJobsLock);
-    //         localNumJobs = numJobs;
-    //         if (localNumJobs == -1)
-    //         {
-    //             pthread_mutex_lock(&receiveLock);
-    //             if (jobsReceived == numJobs)
-    //             {
-    //                 pthread_mutex_unlock(&receiveLock);
-    //                 return 0;
-    //             }
-    //             jobsReceived += 1;
-    //             pthread_mutex_unlock(&receiveLock);
-    //             bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, 0);
-    //             printf("Receiving (1-time) job id %d type 1 size %d\n", message.jobId, getMsgSize(message.innerDim * 2));
-    //         }
-    //         localNumJobs = message.numjobs;
-    //         pthread_mutex_unlock(&numJobsLock);
-    //     }
-    //     else
-    //     {
-    //         pthread_mutex_lock(&receiveLock);
-    //         // If we've processed every job return
-    //         if (jobsReceived == localNumJobs)
-    //         {
-    //             pthread_mutex_unlock(&receiveLock);
-    //             return 0;
-    //         }
-    //         jobsReceived += 1;
-    //         pthread_mutex_unlock(&receiveLock);
-    //         // msgrcv is thread safe and time consuming. Call outside critical section
-    //         bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, 0);
-    //         printf("Receiving (normal) job id %d type 1 size %d\n", message.jobId, getMsgSize(message.innerDim * 2));
-    //     }
-    // int sum = 0;
-    // for (int i = 0; i < message.innerDim; i++)
-    // {
-    //     sum += message.data[i] * message.data[i + message.innerDim];
-    // }
-    // if (payload->readOnly)
-    // {
-    //     printf("Sum for cell %d,%d is %d\n", message.rowNum, message.colNum, sum);
-    // }
     return 0;
 }
 

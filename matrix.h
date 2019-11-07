@@ -4,15 +4,17 @@
 #include <stdlib.h>
 #include "utils.h"
 
-typedef struct _matrix_ {
+typedef struct _matrix_
+{
     int rows;
     int cols;
-    int** values;
+    int **values;
 } Matrix;
 
-Matrix* newMatrix(int rows, int cols);
-Matrix* readMatrixFromFile(FILE* fp);
-void freeMatrix(Matrix* m);
-void printMatrix(Matrix* m);
+Matrix *newMatrix(int rows, int cols);
+Matrix *readMatrixFromFile(FILE *fp);
+void freeMatrix(Matrix *m);
+void printMatrix(Matrix *m);
+void fprintMatrix(FILE *fp, Matrix *m);
 
 #endif

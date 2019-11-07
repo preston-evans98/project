@@ -169,6 +169,7 @@ int main(int argc, char **argv)
     }
 
     printMatrix(result);
+    fprintMatrix(output, result);
     // Cleanup
     freeMatrix(first);
     freeMatrix(second);

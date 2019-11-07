@@ -1,4 +1,5 @@
 #include "matrix.h"
+#include <stdio.h>
 #define BUFF_SIZE 1000
 
 int **allocateMatrix(int rows, int cols)
@@ -72,4 +73,18 @@ void printMatrix(Matrix *m)
         }
         printf("]\n");
     }
+}
+
+void fprintMatrix(FILE *fp, Matrix *m)
+{
+    if (!m)
+        return;
+    for (int i = 0; i < m->rows; i++)
+    {
+        for (int j = 0; j < m->cols; j++)
+        {
+            fprintf(fp, "%d ", m->values[i][j]);
+        }
+    }
+    fprintf(fp, "\n");
 }

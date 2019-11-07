@@ -17,8 +17,7 @@ matrix.o: matrix.c matrix.h utils.o
 	$(CC) $(CFLAGS) -c matrix.c -o matrix.o
 
 test: all 
-	./package matrix1.dat matrix2.dat output.dat 0
-	# ./compute 3
+	./package matrix1.dat matrix2.dat output.dat 2
 
 check: all
 	./package garbage.dat matrix2.dat output.dat 3
