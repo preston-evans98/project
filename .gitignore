@@ -2,3 +2,5 @@
 *.out
 *.dat
 package
+compute
+clearQueue*

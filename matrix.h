@@ -10,6 +10,7 @@ typedef struct _matrix_ {
     int** values;
 } Matrix;
 
+Matrix* newMatrix(int rows, int cols);
 Matrix* readMatrixFromFile(FILE* fp);
 void freeMatrix(Matrix* m);
 void printMatrix(Matrix* m);

@@ -1,0 +1,154 @@
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include "matrix.h"
+#include "utils.h"
+#include "string.h"
+#include <errno.h>
+
+pthread_mutex_t sendLock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t receiveLock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t numJobsLock = PTHREAD_MUTEX_INITIALIZER;
+int jobsSent = 0;
+int jobsReceived = 0;
+// int numJobs = -1;
+
+typedef struct _payload
+{
+    bool readOnly;
+    int msqid;
+} Payload;
+
+void sigIntHandler(int signum)
+{
+    if (signum == SIGINT)
+    {
+        printf("Jobs sent: %d. Jobs received: %d\n", jobsSent, jobsReceived);
+    }
+}
+
+int doDotProduct(void *args)
+{
+    Msg message;
+    Payload *payload = (Payload *)args;
+    // int localNumJobs = -1;
+    int bytesReceived = -1;
+    // int rc;
+    while (1)
+    {
+        bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, IPC_NOWAIT);
+        if (errno == ENOMSG || bytesReceived == -1)
+        {
+            continue;
+        }
+        else
+        {
+            printf("Receiving job id %d type 1 size %d\n", message.jobId, getMsgSize(message.innerDim * 2));
+            bytesReceived = -1;
+            pthread_mutex_lock(&receiveLock);
+            ++jobsReceived;
+            pthread_mutex_unlock(&receiveLock);
+            int sum = 0;
+            for (int i = 0; i < message.innerDim; i++)
+            {
+                sum += message.data[i] * message.data[i + message.innerDim];
+            }
+            if (payload->readOnly)
+            {
+                printf("Sum for cell %d,%d is %d\n", message.rowNum, message.colNum, sum);
+            }
+        }
+    }
+    // while (1)
+    // {
+    //     if (localNumJobs == -1)
+    //     {
+    //         pthread_mutex_lock(&numJobsLock);
+    //         localNumJobs = numJobs;
+    //         if (localNumJobs == -1)
+    //         {
+    //             pthread_mutex_lock(&receiveLock);
+    //             if (jobsReceived == numJobs)
+    //             {
+    //                 pthread_mutex_unlock(&receiveLock);
+    //                 return 0;
+    //             }
+    //             jobsReceived += 1;
+    //             pthread_mutex_unlock(&receiveLock);
+    //             bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, 0);
+    //             printf("Receiving (1-time) job id %d type 1 size %d\n", message.jobId, getMsgSize(message.innerDim * 2));
+    //         }
+    //         localNumJobs = message.numjobs;
+    //         pthread_mutex_unlock(&numJobsLock);
+    //     }
+    //     else
+    //     {
+    //         pthread_mutex_lock(&receiveLock);
+    //         // If we've processed every job return
+    //         if (jobsReceived == localNumJobs)
+    //         {
+    //             pthread_mutex_unlock(&receiveLock);
+    //             return 0;
+    //         }
+    //         jobsReceived += 1;
+    //         pthread_mutex_unlock(&receiveLock);
+    //         // msgrcv is thread safe and time consuming. Call outside critical section
+    //         bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, 0);
+    //         printf("Receiving (normal) job id %d type 1 size %d\n", message.jobId, getMsgSize(message.innerDim * 2));
+    //     }
+    // int sum = 0;
+    // for (int i = 0; i < message.innerDim; i++)
+    // {
+    //     sum += message.data[i] * message.data[i + message.innerDim];
+    // }
+    // if (payload->readOnly)
+    // {
+    //     printf("Sum for cell %d,%d is %d\n", message.rowNum, message.colNum, sum);
+    // }
+    return 0;
+}
+
+int main(int argc, char **argv)
+{
+    // Handle interrupts
+    bool readOnly = false;
+    signal(SIGINT, sigIntHandler);
+    // Check for correct number of arguments
+    if (argc < 2)
+    {
+        raiseError("Usage: ./compute <thread pool size> <-n for just read and output calculations>\n");
+    }
+    // Parse args
+    int numThreads = atoi(argv[1]);
+    if (numThreads == 0)
+    {
+        raiseError("Must initialize numthreads >= 1\n");
+    }
+    if (argc >= 3 && (strncmp(argv[2], "-n", 3) == 0))
+    {
+        readOnly = true;
+    }
+
+    int msqid = msgget(11793506, 0666 | IPC_CREAT);
+    if (msqid == -1)
+    {
+        raiseError("Error: could not establish message queue.\n");
+    }
+
+    Payload *payload = safeMalloc(sizeof(Payload));
+    payload->readOnly = readOnly;
+    payload->msqid = msqid;
+
+    pthread_t threadPool[numThreads];
+    for (int i = 0; i < numThreads; i++)
+    {
+        pthread_create(&threadPool[i], NULL, (void *)doDotProduct, (void *)payload);
+    }
+
+    // free(payload);
+    pthread_exit(0);
+}
