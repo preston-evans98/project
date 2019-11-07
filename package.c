@@ -171,14 +171,8 @@ int main(int argc, char **argv)
     printMatrix(result);
     // Cleanup
     freeMatrix(first);
-    // for (int i = 0; i < second->rows; i++)
-    // {
-    //     free(second->values[i]);
-    // }
-    // free(second->values);
-    // free(second);
-    // freeMatrix(second);
-    // freeMatrix(result);
+    freeMatrix(second);
+    freeMatrix(result);
     for (int i = 0; i < numJobs; i++)
     {
         free(payloads[i]);

@@ -4,7 +4,7 @@
 int **allocateMatrix(int rows, int cols)
 {
     int **new = safeMalloc(sizeof(int *) * rows);
-    for (int i = 0; i < cols; i++)
+    for (int i = 0; i < rows; i++)
     {
         new[i] = safeMalloc(sizeof(int) * cols);
     }
@@ -51,7 +51,7 @@ Matrix *readMatrixFromFile(FILE *file)
 
 void freeMatrix(Matrix *m)
 {
-    for (int i = 0; i < m->cols; i++)
+    for (int i = 0; i < m->rows; i++)
     {
         free(m->values[i]);
     }
