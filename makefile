@@ -5,10 +5,10 @@ OBJECTS = utils.o matrix.o
 all: package compute
 
 compute: $(OBJECTS) compute.c
-	$(CC) $(CFLAGS) $(OBJECTS) compute.c -o compute -lpthread -DDEBUG=1
+	$(CC) $(CFLAGS) $(OBJECTS) compute.c -o compute -lpthread -DDEBUG=1 -D_GNU_SOURCE
 
 package: $(OBJECTS) package.c
-	$(CC) $(CFLAGS) $(OBJECTS) package.c -o package -lpthread -DDEBUG=1
+	$(CC) $(CFLAGS) $(OBJECTS) package.c -o package -lpthread -DDEBUG=1 -D_GNU_SOURCE
 
 utils.o: utils.c utils.h
 	$(CC) $(CFLAGS) -c utils.c -o utils.o
@@ -16,7 +16,7 @@ utils.o: utils.c utils.h
 matrix.o: matrix.c matrix.h utils.o
 	$(CC) $(CFLAGS) -c matrix.c -o matrix.o
 
-test: clear all 
+test: all 
 	./package matrix1.dat matrix2.dat output.dat 0
 	# ./compute 3
 

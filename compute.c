@@ -40,8 +40,11 @@ int doDotProduct(void *args)
     // int rc;
     while (1)
     {
-        bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, IPC_NOWAIT);
+        // bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, IPC_NOWAIT);
+        bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, 0);
+
         if (errno == ENOMSG || bytesReceived == -1)
+        // if (errno == ENOMSG)
         {
             continue;
         }
@@ -60,6 +63,16 @@ int doDotProduct(void *args)
             if (payload->readOnly)
             {
                 printf("Sum for cell %d,%d is %d\n", message.rowNum, message.colNum, sum);
+            }
+            else
+            {
+                message.type = 2;
+                pthread_mutex_lock(&sendLock);
+                ++jobsSent;
+                pthread_mutex_unlock(&sendLock);
+                message.data[0] = sum;
+                int rc = msgsnd(payload->msqid, &message, getMsgSize(1), 0);
+                printf("Sending job id %d type %d size %d (rc=%d)\n", message.jobId, 2, getMsgSize(1), rc);
             }
         }
     }

@@ -6,6 +6,7 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include "matrix.h"
+#include <errno.h>
 
 typedef struct __payload_
 {
@@ -65,20 +66,20 @@ void *packageSubtasks(void *payload)
     pthread_mutex_lock(&sendLock);
     ++jobsSent;
     pthread_mutex_unlock(&sendLock);
-
-    // int rc = msgsnd(data->msqid, &message, 0, 0);
-    int rc = msgsnd(data->msqid, &message, getMsgSize(2 * innerDim), 0);
+    int rc = -1;
+    rc = msgsnd(data->msqid, &message, getMsgSize(2 * innerDim), 0);
     printf("Sending job id %d type %d size %d (rc=%d)\n", data->jobId, 1, getMsgSize(2 * innerDim), rc);
+
     // TODO: Add check for eventual message send
 
-    // Wait for response
-    // msgrcv(data->msqid, &message, 1, 2, getMsgSize(1));
-    // printf("Receiving job id %d type %d size %d\n", message.jobId, 2, 20);
     pthread_mutex_lock(&receiveLock);
     ++jobsReceived;
     pthread_mutex_unlock(&receiveLock);
+    // Wait for response
+    msgrcv(data->msqid, &message, getMsgSize(100), 2, 0);
+    printf("Receiving job id %d type %d size %d\n", message.jobId, 2, getMsgSize(1));
 
-    // ((Payload*)payload)->result->values[message.rowNum][message.colNum] = message.data[0];
+    ((Payload *)payload)->result->values[message.rowNum][message.colNum] = message.data[0];
     return NULL;
 }
 
@@ -167,8 +168,15 @@ int main(int argc, char **argv)
         pthread_join(packagers[i], dummy);
     }
 
+    printMatrix(result);
     // Cleanup
     freeMatrix(first);
+    // for (int i = 0; i < second->rows; i++)
+    // {
+    //     free(second->values[i]);
+    // }
+    // free(second->values);
+    // free(second);
     // freeMatrix(second);
     // freeMatrix(result);
     for (int i = 0; i < numJobs; i++)
