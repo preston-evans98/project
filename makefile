@@ -26,6 +26,7 @@ runTests: $(OBJECTS) test.c package.c
 	
 test: all
 	./package matrix1.dat matrix2.dat output.dat 2
+	
 check: all
 	./package garbage.dat matrix2.dat output.dat 3
 

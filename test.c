@@ -38,6 +38,11 @@ int main() {
         printf("FAILURE!\n");
         exit(-1);
     }
+    success = runTest("large", "large", "expected50x50.dat");
+    if (!success) {
+        printf("FAILURE!\n");
+        exit(-1);
+    }
     success = runTest("small", "small", "expected1x1.dat");
     if (!success) {
         printf("FAILURE!\n");
