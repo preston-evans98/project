@@ -11,14 +11,14 @@ bool runTest(char* testInputOne, char* testInputTwo, char* resultFileName) {
     if (!resultFp) {
         fprintf(stderr, "Could not open result file.");
     }
-    FILE* expectedFp = fopen("result.dat", "r");
+    FILE* expectedFp = fopen(resultFileName, "r");
     if (!expectedFp) {
         fprintf(stderr, "Could not open expected file.");
     }
     Matrix* actual = readMatrixFromFile(resultFp);
     Matrix* expected = readMatrixFromFile(expectedFp);
     if (!matrixEquals(actual, expected)){
-        fprintf(stderr, "%s * %s != %s", testInputOne, testInputTwo, resultFileName);
+        fprintf(stderr, "%s * %s != %s\n", testInputOne, testInputTwo, resultFileName);
         return false;
     }
     return true;
@@ -28,17 +28,17 @@ bool runTest(char* testInputOne, char* testInputTwo, char* resultFileName) {
 
 int main() {
     bool success;
-    success = runTest("matrix1", "matrix2", "expected3x5");
+    success = runTest("matrix1", "matrix2", "expected3x5.dat");
     if (!success) {
         printf("FAILURE!\n");
         exit(-1);
     }
-    success = runTest("l2", "l3", "expected50x5");
+    success = runTest("large", "l3", "expected50x5.dat");
     if (!success) {
         printf("FAILURE!\n");
         exit(-1);
     }
-    success = runTest("small", "small", "expected1x1");
+    success = runTest("small", "small", "expected1x1.dat");
     if (!success) {
         printf("FAILURE!\n");
         exit(-1);
