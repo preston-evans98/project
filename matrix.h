@@ -16,5 +16,7 @@ Matrix *readMatrixFromFile(FILE *fp);
 void freeMatrix(Matrix *m);
 void printMatrix(Matrix *m);
 void fprintMatrix(FILE *fp, Matrix *m);
+void fprintReadableMatrix(FILE *fp, Matrix *m);
+bool matrixEquals(Matrix* m1, Matrix* m2);
 
 #endif

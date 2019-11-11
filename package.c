@@ -55,7 +55,7 @@ void *packageSubtasks(void *payload)
     message.rowNum = data->rowNum;
     message.colNum = data->colNum;
     message.innerDim = innerDim;
-    message.numjobs = first->rows * second->cols;
+    // message.numjobs = first->rows * second->cols;
 
     for (int currentIndex = 0; currentIndex < innerDim; currentIndex++)
     {
@@ -135,7 +135,8 @@ int main(int argc, char **argv)
     Matrix *result = newMatrix(first->rows, second->cols);
 
     // establish msg queue
-    key_t key = 11793506;
+    key_t key = ftok("/home/pbevans1", 65);
+    // key_t key = 11793506;
     int msqid = msgget(key, 0666 | IPC_CREAT);
     if (msqid == -1)
     {
@@ -169,7 +170,11 @@ int main(int argc, char **argv)
     }
 
     printMatrix(result);
+#if AUTO_TEST
+    fprintReadableMatrix(output, result);
+#else
     fprintMatrix(output, result);
+#endif
     // Cleanup
     freeMatrix(first);
     freeMatrix(second);

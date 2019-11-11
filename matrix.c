@@ -75,6 +75,20 @@ void printMatrix(Matrix *m)
     }
 }
 
+void fprintReadableMatrix(FILE *fp, Matrix *m)
+{
+    fprintf(fp, "%d %d\n", m->rows, m->cols);
+    if (!m)
+        return;
+    for (int i = 0; i < m->rows; i++)
+    {
+        for (int j = 0; j < m->cols; j++)
+        {
+            fprintf(fp, "%d ", m->values[i][j]);
+        }
+    }
+    fprintf(fp, "\n");
+}
 void fprintMatrix(FILE *fp, Matrix *m)
 {
     if (!m)
@@ -88,3 +102,16 @@ void fprintMatrix(FILE *fp, Matrix *m)
     }
     fprintf(fp, "\n");
 }
+
+bool matrixEquals(Matrix* m1, Matrix* m2) {
+    if (!m1 || !m2) return false; 
+    if (m1->rows != m2->rows) return false;
+    if (m1->cols != m2->cols) return false;
+    for (int i = 0; i < m1->rows; i++) {
+        for (int j = 0; j < m1->cols; j++) {
+            if (m1->values[i][j] != m2->values[i][j]) return false;
+        }
+    }
+    return true;
+}
+
