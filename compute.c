@@ -6,6 +6,7 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include "matrix.h"
+#include "vector.h"
 #include "utils.h"
 #include "string.h"
 #include <errno.h>
@@ -33,6 +34,7 @@ void sigIntHandler(int signum)
 
 int doDotProduct(void *args)
 {
+    Vector *messagesToSend = newVector();
     Msg message;
     Payload *payload = (Payload *)args;
     // int localNumJobs = -1;
@@ -40,12 +42,36 @@ int doDotProduct(void *args)
     // int rc;
     while (1)
     {
-        // bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, IPC_NOWAIT);
-        bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, 0);
 
-        if (errno == ENOMSG || bytesReceived == -1)
-        // if (errno == ENOMSG)
+        // bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, IPC_NOWAIT);
+        // If we have no messages waiting to send, block until next is received
+        if (messagesToSend->size == 0)
         {
+            bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, 0);
+        }
+        else
+        {
+            bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, IPC_NOWAIT);
+        }
+        if (errno == ENOMSG)
+        // if (errno == ENOMSG || bytesReceived == -1)
+        {
+            if (messagesToSend->size != 0)
+            {
+                Msg *outboundMessage = (Msg *)popFromVec(messagesToSend);
+                int rc = msgsnd(payload->msqid, outboundMessage, getMsgSize(1), IPC_NOWAIT);
+                if (rc == 0)
+                {
+                    pthread_mutex_lock(&sendLock);
+                    ++jobsSent;
+                    pthread_mutex_unlock(&sendLock);
+                    printf("Sending job id %d type %d size %d (rc=%d)\n", outboundMessage->jobId, 2, getMsgSize(1), rc);
+                }
+                else
+                {
+                    pushToVec(messagesToSend, outboundMessage);
+                }
+            }
             continue;
         }
         else
@@ -67,15 +93,24 @@ int doDotProduct(void *args)
             else
             {
                 message.type = 2;
-                pthread_mutex_lock(&sendLock);
-                ++jobsSent;
-                pthread_mutex_unlock(&sendLock);
                 message.data[0] = sum;
-                int rc = msgsnd(payload->msqid, &message, getMsgSize(1), 0);
-                printf("Sending job id %d type %d size %d (rc=%d)\n", message.jobId, 2, getMsgSize(1), rc);
+                int rc = msgsnd(payload->msqid, &message, getMsgSize(1), IPC_NOWAIT);
+                if (rc == 0)
+                {
+                    pthread_mutex_lock(&sendLock);
+                    ++jobsSent;
+                    pthread_mutex_unlock(&sendLock);
+                    printf("Sending job id %d type %d size %d (rc=%d)\n", message.jobId, 2, getMsgSize(1), rc);
+                }
+                else
+                {
+                    Msg *new = copyOutboundMessage(&message);
+                    pushToVec(messagesToSend, new);
+                }
             }
         }
     }
+    destroyVec(messagesToSend);
     return 0;
 }
 
