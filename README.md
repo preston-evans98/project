@@ -1,7 +1,7 @@
 ### Getting Started
 
 1. Clone this repo, then use `make` to build from source.
-1. Start compute in one terminal `./compute 1` (Fell free to replace `1` with a different number of threads)
+1. Start compute in one terminal `./compute 1` (Feel free to replace `1` with a different number of threads)
 1. Run package in another `./package matrix1.dat matrix1.dat output.dat` 
 
 ### Automated Testing
