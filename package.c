@@ -19,6 +19,7 @@ typedef struct __payload_
     Matrix *result;
 } Payload;
 
+// Need globals to allow for SIGINT to print jobs sent/received
 pthread_mutex_t sendLock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t receiveLock = PTHREAD_MUTEX_INITIALIZER;
 int jobsSent = 0;
@@ -88,9 +89,9 @@ int main(int argc, char **argv)
     // Handle interrupts
     signal(SIGINT, sigIntHandler);
     // Check for correct number of arguments
-    if (argc < 5)
+    if (argc < 4)
     {
-        fprintf(stderr, "Usage: ./package <matrix 1 file> <matrix 2 file> <output matrix data file> <secs between thread creation>\n");
+        fprintf(stderr, "Usage: ./package <matrix 1 file> <matrix 2 file> <output matrix data file> <(OPTIONAL) secs between thread creation>\n");
         exit(0);
     }
     // Parse args and verify that all file paths can be opened
@@ -116,8 +117,14 @@ int main(int argc, char **argv)
         fprintf(stderr, "Could not open file '%s' - aborting.\n", argv[3]);
         exit(-1);
     }
-    secsBetweenThreads = atoi(argv[4]);
-
+    if (argc == 5)
+    {
+        secsBetweenThreads = atoi(argv[4]);
+    }
+    else
+    {
+        secsBetweenThreads = 0;
+    }
     // Read data from files
     Matrix *first = readMatrixFromFile(inputOne);
     Matrix *second = readMatrixFromFile(inputTwo);
@@ -135,8 +142,12 @@ int main(int argc, char **argv)
     Matrix *result = newMatrix(first->rows, second->cols);
 
     // establish msg queue
-    key_t key = ftok("/home/pbevans1", 65);
-    // key_t key = 11793506;
+    key_t key = ftok("pbevans1", 65);
+    if (key == -1)
+    {
+        fprintf(stderr, "Error: could not get key for msg queue.\n");
+        exit(-1);
+    }
     int msqid = msgget(key, 0666 | IPC_CREAT);
     if (msqid == -1)
     {

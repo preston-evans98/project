@@ -11,12 +11,12 @@
 #include "string.h"
 #include <errno.h>
 
+// Need globals to allow for SIGINT to print jobs sent/received
+
 pthread_mutex_t sendLock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t receiveLock = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t numJobsLock = PTHREAD_MUTEX_INITIALIZER;
 int jobsSent = 0;
 int jobsReceived = 0;
-// int numJobs = -1;
 
 typedef struct _payload
 {
@@ -37,8 +37,7 @@ int doDotProduct(void *args)
     Vector *messagesToSend = newVector();
     Msg message;
     Payload *payload = (Payload *)args;
-    // int localNumJobs = -1;
-    int bytesReceived = -1;
+    int bytesReceived;
     // int rc;
     while (1)
     {
@@ -53,8 +52,8 @@ int doDotProduct(void *args)
         {
             bytesReceived = msgrcv(payload->msqid, &message, getMsgSize(100), 1, IPC_NOWAIT);
         }
-        if (errno == ENOMSG)
-        // if (errno == ENOMSG || bytesReceived == -1)
+        // if (errno == ENOMSG)
+        if (errno == ENOMSG || bytesReceived == -1)
         {
             if (messagesToSend->size != 0)
             {
@@ -134,8 +133,14 @@ int main(int argc, char **argv)
     {
         readOnly = true;
     }
+    key_t key = ftok("pbevans1", 65);
+    if (key == -1)
+    {
+        fprintf(stderr, "Error: could not get key for msg queue.\n");
+        exit(-1);
+    }
 
-    int msqid = msgget(11793506, 0666 | IPC_CREAT);
+    int msqid = msgget(key, 0666 | IPC_CREAT);
     if (msqid == -1)
     {
         raiseError("Error: could not establish message queue.\n");
